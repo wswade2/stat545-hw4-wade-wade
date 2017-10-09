@@ -2,7 +2,9 @@
 title: "hw4"
 author: "Wade"
 date: "October 7, 2017"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 <h3>Homework 4</h3>
@@ -10,17 +12,45 @@ output: html_document
 In this assignment, I have been asked to perform a <i>reshaping</i> task and a <i>join</i> task.
 
 
+I'll start with loading the packages I need.
+
+```{r warning=FALSE}
+suppressPackageStartupMessages(library(gapminder))
+suppressPackageStartupMessages(library(tidyverse))
+```
 
 
+<h4>Task 1</h4>
+
+Let's begin with the reshaping task.
 
 
+"Compute some measure of life expectancy (mean? median? min? max?) for all possible combinations of continent and year. Reshape that to have one row per year and one variable for each continent. Or the other way around: one row per continent and one variable per year."
+
+```{r}
+g<- gapminder %>%
+  group_by(continent, year)%>%
+  summarize(max_le=max(lifeExp))
+
+knitr::kable(g, col.names=c("Continent","Year", "Max L.Exp"))
+```
 
 
+It looks like the dataframe we have now is in long format, but we want to change it to wide format so that each continent has its own column. To do this we will use the spread() function.
+
+```{r}
+wide_g <- spread(g, continent, max_le)
+wide_g
+```
+
+```{r}
+knitr::kable(wide_g, caption = "Maximum Life Expectancy")
+```
+
+Here we have our data reshaped to display maximum life expectancy with one row per year and one variable for each continent. 
 
 
-
-
-
+<h4>Task 2</h4>
 
 
 
