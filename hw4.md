@@ -11,8 +11,30 @@ I'll start with loading the packages I need.
 
 
 ```r
-suppressPackageStartupMessages(library(gapminder))
-suppressPackageStartupMessages(library(tidyverse))
+library(gapminder)
+library(tidyr)
+library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
+library(ggplot2)
 ```
 
 
@@ -98,6 +120,15 @@ Oceania      2002      80.370
 Oceania      2007      81.235
 
 
+```r
+ggplot(g, aes(x=continent, y=max_le))+
+  geom_boxplot(fill="seagreen")+
+  labs(x="Continent", y="Max Life Expectancy")+
+  theme_bw()
+```
+
+![](hw4_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
 It looks like the dataframe we have now is in long format, but we want to change it to wide format so that each continent has its own column. To do this we will use the spread() function.
 
 
@@ -153,9 +184,156 @@ Here we have our data reshaped to display maximum life expectancy with one row p
 
 <h4>Task 2</h4>
 
+"Create a second data frame, complementary to Gapminder. Join this with (part of) Gapminder using a  dplyr join function and make some observations about the process and result. Explore the different types of joins. "
+
+First, we will create the second dataframe:
 
 
+```r
+new.data<- gapminder%>%
+  select(country, continent, year, pop)
 
+hem <- c("Eastern", "Eastern", "Western", "Eastern", "Eastern")
+index<- c("Asia", "Africa", "Americas", "Europe", "Oceania")
+new.data$hemisphere<-hem[match(new.data$continent, index)] 
+
+countries_per_continent<-c(47, 54, 35, 43, 2)
+new.data$countryPerCont<-countries_per_continent[match(new.data$continent, index)]
+
+
+continent_size<- c(17212000, 11608000, 16245000, 3837000, 2968000)
+new.data$continentSizeSqKm<-continent_size[match(new.data$continent, index)]
+
+new.data<-new.data%>%
+  mutate(popDensity = pop/continentSizeSqKm)
+head(new.data)
+```
+
+```
+## # A tibble: 6 × 8
+##       country continent  year      pop hemisphere countryPerCont
+##        <fctr>    <fctr> <int>    <int>      <chr>          <dbl>
+## 1 Afghanistan      Asia  1952  8425333    Eastern             47
+## 2 Afghanistan      Asia  1957  9240934    Eastern             47
+## 3 Afghanistan      Asia  1962 10267083    Eastern             47
+## 4 Afghanistan      Asia  1967 11537966    Eastern             47
+## 5 Afghanistan      Asia  1972 13079460    Eastern             47
+## 6 Afghanistan      Asia  1977 14880372    Eastern             47
+## # ... with 2 more variables: continentSizeSqKm <dbl>, popDensity <dbl>
+```
+
+Here I have created a second dataframe called new.data that lists the country, continent, year, population, hemisphere, number of countries on each continent, and size of each continent. I've also created a relative measure of population density based on continent size.
+
+Next, I will experiment with various ways to join new.data with the gapminder dataset.
+
+Let's try to join this dataset with a version of gapminder we created earlier.
+
+
+```r
+gap.new1<-semi_join(g, new.data)
+```
+
+```
+## Joining, by = c("continent", "year")
+```
+
+```r
+head(gap.new1)
+```
+
+```
+## Source: local data frame [6 x 3]
+## Groups: continent [1]
+## 
+##   continent  year max_le
+##      <fctr> <int>  <dbl>
+## 1      Asia  1952  65.39
+## 2      Asia  1957  67.84
+## 3      Asia  1962  69.39
+## 4      Asia  1967  71.43
+## 5      Asia  1972  73.42
+## 6      Asia  1977  75.38
+```
+
+That doesn't appear to have worked. The popDensity variable I created is not on this table. A lot of other variables are missing too.
+
+
+```r
+g.new1<- left_join(g, new.data, by = c("continent", "year"))
+View(g.new1)
+```
+
+This appears to have worked, but the life expectancy max is in a wierd spot. Let's try another one.
+
+
+```r
+g.new2<- full_join(g, new.data, by = c("continent", "year"))
+View(g.new2)
+```
+
+This one has the same problem. I think a reversed left join might work.
+
+
+```r
+g.new3<- left_join(new.data, g, by = c("continent", "year"))
+View(g.new3)
+```
+
+Perfect! This is the one I was looking for.
+
+Just for fun, let's see what variables affect the population density variable.
+
+
+```r
+ggplot(data=g.new3, aes(x=continent, y=popDensity, color=continent))+
+  geom_point(alpha=.25)+
+  labs(x="Continent", y="Population Density")
+```
+
+![](hw4_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
+
+```r
+ggplot(data=g.new3, aes(x=pop, y=popDensity, color=continent))+
+  geom_point(alpha=.25)+
+  labs(x="Population", y="Population Density")
+```
+
+![](hw4_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+All right, clearly we know that population and continent are associated with the population density measure we created. This is true by definition. What else may be associated with popDensity?
+
+
+```r
+ggplot(data=g.new3, aes(x=popDensity, y=max_le, color=continent))+
+  geom_point(alpha=.25)+
+  labs(x="Population Density", y="Max Life Expectancy")+
+  geom_smooth(method="lm")
+```
+
+![](hw4_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+
+```r
+ggplot(data=g.new3, aes(x=countryPerCont, y=max_le, color=continent))+
+  geom_violin(alpha=.25)+
+  labs(x="Countries per Continent", y="Max Life Expectancy")
+```
+
+![](hw4_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+
+I suppose that due to the way the data are clustered, this graph does not add much more than what we would learn from just plotting the continent against max life expectancy.
+
+It looks like, for the most part, lower population density predicts higher life expectancy, although this is not always the case.
+
+
+<h1>Process</h1>
+<li>I used <a href=http://www.enchantedlearning.com/geography/continents/Extremes.shtml> this website </a> for data about the world's continents.</li>
+<li>When I began the assignment, I did not know where to start</li>
+<li>I think in that type of situation, the best thing to do is just start anywhere. Something you do in the early stages may provide you with a better sense of direction</li>
+<li>Still, I felt as if in the beginning I did not have the knowledge I needed to complete the assignment</li>
+<li>I Googled things frequently</li>
+<li>I especially needed extra help understanding wide vs long data.</li>
 
 
 
