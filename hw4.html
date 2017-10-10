@@ -140,6 +140,7 @@ library(dplyr)</code></pre>
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
 <pre class="r"><code>library(ggplot2)</code></pre>
+<p>I loaded some tidyverse packages separately because loading tidyverse led to errors whenever I tried to render this file to HTML. I still have not been able to resolve this issue.</p>
 <h4>
 Task 1
 </h4>
@@ -149,7 +150,7 @@ Task 1
   group_by(continent, year)%&gt;%
   summarize(max_le=max(lifeExp))
 
-knitr::kable(g, col.names=c(&quot;Continent&quot;,&quot;Year&quot;, &quot;Max L.Exp&quot;))</code></pre>
+knitr::kable(g, col.names=c(&quot;Continent&quot;,&quot;Year&quot;, &quot;Max L.Exp&quot;), format = &quot;markdown&quot;)</code></pre>
 <table>
 <thead>
 <tr class="header">
@@ -484,9 +485,8 @@ wide_g</code></pre>
 ## 10  1997 74.772   78.610 80.690 79.390  78.830
 ## 11  2002 75.744   79.770 82.000 80.620  80.370
 ## 12  2007 76.442   80.653 82.603 81.757  81.235</code></pre>
-<pre class="r"><code>knitr::kable(wide_g, caption = &quot;Maximum Life Expectancy&quot;)</code></pre>
+<pre class="r"><code>knitr::kable(wide_g, caption = &quot;Maximum Life Expectancy&quot;, format = &quot;markdown&quot;)</code></pre>
 <table>
-<caption>Maximum Life Expectancy</caption>
 <thead>
 <tr class="header">
 <th align="right">year</th>

@@ -35,7 +35,7 @@ g<- gapminder %>%
   group_by(continent, year)%>%
   summarize(max_le=max(lifeExp))
 
-knitr::kable(g, col.names=c("Continent","Year", "Max L.Exp"))
+knitr::kable(g, col.names=c("Continent","Year", "Max L.Exp"), format = "markdown")
 ```
 
 ```{r}
@@ -53,7 +53,7 @@ wide_g
 ```
 
 ```{r}
-knitr::kable(wide_g, caption = "Maximum Life Expectancy")
+knitr::kable(wide_g, caption = "Maximum Life Expectancy", format = "markdown")
 ```
 
 Here we have our data reshaped to display maximum life expectancy with one row per year and one variable for each continent. 
